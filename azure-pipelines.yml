@@ -17,3 +17,24 @@ steps:
     echo Add other tasks to build, test, and deploy your project.
     echo See https://aka.ms/yaml
   displayName: 'Run a multi-line script'
+
+- task: JavaToolInstaller@0
+  inputs:
+    versionSpec: '17'
+    jdkArchitectureOption: 'x64'
+    jdkSourceOption: 'PreInstalled'
+
+- task: FortifyOnDemandStatic@9
+  inputs:
+    FortifyProjects: '$(Pipeline.Workspace)/s'
+    FodConnection: 'FoD_AMS_API'
+    ReleaseOptions: '0'
+    ReleaseId: 1267697
+    EntitlementSelection: '1'
+    EntitlementPreference: '1'
+    OverrideScanSettings: '2'
+    InProgressScanActionType: '1'
+    RemediationScanPreference: '2'
+    BuildType: 'mvn'
+    PolicyFailAction: '0'
+    PollingInterval: 1
