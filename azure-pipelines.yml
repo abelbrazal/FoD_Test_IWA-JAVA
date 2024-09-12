@@ -37,4 +37,4 @@ steps:
     RemediationScanPreference: '2'
     BuildType: 'mvn'
     PolicyFailAction: '0'
-    PollingInterval: '0'
+    PollingInterval: 0
