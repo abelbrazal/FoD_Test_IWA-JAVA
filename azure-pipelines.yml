@@ -29,7 +29,7 @@ steps:
     FortifyProjects: '$(Pipeline.Workspace)/s'
     FodConnection: 'FoD_AMS_API'
     ReleaseOptions: '0'
-    ReleaseId: 1188352
+    ReleaseId: 1268298
     EntitlementSelection: '1'
     EntitlementPreference: '1'
     OverrideScanSettings: '2'
