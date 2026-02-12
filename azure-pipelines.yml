@@ -46,7 +46,7 @@ steps:
     ReleaseOptions: '2'
     ApplicationName: 'QS 1902008 - Take 2'
     BusinessCriticality: '1'
-    ReleaseName: 'Another 1'
+    ReleaseName: '2 is better than 1'
     Owner: 12665
     EntitlementSelection: '1'
     EntitlementPreference: '1'
