@@ -24,17 +24,35 @@ steps:
     jdkArchitectureOption: 'x64'
     jdkSourceOption: 'PreInstalled'
 
+#- task: FortifyOnDemandStatic@9
+#  inputs:
+#    FortifyProjects: '$(Pipeline.Workspace)/s'
+#    FodConnection: 'FoD_AMS_API'
+#    ReleaseOptions: '0'
+#    ReleaseId: 1233871
+#    EntitlementSelection: '1'
+#    EntitlementPreference: '1'
+#    OverrideScanSettings: '2'
+#    InProgressScanActionType: '1'
+#    RemediationScanPreference: '2'
+#    BuildType: 'mvn'
+#    PolicyFailAction: '0'
+#    PollingInterval: 0
+
 - task: FortifyOnDemandStatic@9
   inputs:
     FortifyProjects: '$(Pipeline.Workspace)/s'
     FodConnection: 'FoD_AMS_API'
-    ReleaseOptions: '0'
-    ReleaseId: 1233871
+    ReleaseOptions: '2'
+    ApplicationName: 'QS 1902008'
+    BusinessCriticality: '1'
+    ReleaseName: '1'
+    Owner: 12665
     EntitlementSelection: '1'
     EntitlementPreference: '1'
-    OverrideScanSettings: '2'
-    InProgressScanActionType: '1'
+    OverrideScanSettings: '1'
+    AssessmentTypeId: '274'
+    InProgressScanActionType: '2'
     RemediationScanPreference: '2'
-    BuildType: 'mvn'
+    BuildType: 'none'
     PolicyFailAction: '0'
-    PollingInterval: 0
