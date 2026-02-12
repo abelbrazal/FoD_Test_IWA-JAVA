@@ -44,9 +44,9 @@ steps:
     FortifyProjects: '$(Pipeline.Workspace)/s'
     FodConnection: 'FoD_AMS_API'
     ReleaseOptions: '2'
-    ApplicationName: 'QS 1902008'
+    ApplicationName: 'QS 1902008 - Take 2'
     BusinessCriticality: '1'
-    ReleaseName: '1'
+    ReleaseName: 'Another 1'
     Owner: 12665
     EntitlementSelection: '1'
     EntitlementPreference: '1'
