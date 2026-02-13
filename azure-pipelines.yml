@@ -39,16 +39,35 @@ steps:
 #    PolicyFailAction: '0'
 #    PollingInterval: 0
 
+#- task: FortifyOnDemandStatic@9
+#  inputs:
+#    FortifyProjects: '$(Pipeline.Workspace)/s'
+#    FodConnection: 'FoD_AMS_API'
+#    ReleaseOptions: '2'
+#    ApplicationName: 'QS 1902008 - Take 2'
+#    BusinessCriticality: '1'
+#    ReleaseName: '2 is better than 1'
+#    Owner: 12665
+#    EntitlementSelection: '1'
+#    EntitlementPreference: '1'
+#    OverrideScanSettings: '1'
+#    AssessmentTypeId: '274'
+#    InProgressScanActionType: '2'
+#    RemediationScanPreference: '2'
+#    BuildType: 'none'
+#    PolicyFailAction: '0'
+
 - task: FortifyOnDemandStatic@9
   inputs:
     FortifyProjects: '$(Pipeline.Workspace)/s'
     FodConnection: 'FoD_AMS_API'
     ReleaseOptions: '2'
-    ApplicationName: 'QS 1902008 - Take 2'
+    ApplicationName: 'QS 1902008 - Take 3'
     BusinessCriticality: '1'
-    ReleaseName: '2 is better than 1'
+    ReleaseName: '1'
     Owner: 12665
-    EntitlementSelection: '1'
+    EntitlementSelection: '0'
+    Entitlement: 14154
     EntitlementPreference: '1'
     OverrideScanSettings: '1'
     AssessmentTypeId: '274'
