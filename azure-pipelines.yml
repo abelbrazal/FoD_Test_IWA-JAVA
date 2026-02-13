@@ -66,8 +66,8 @@ steps:
     BusinessCriticality: '1'
     ReleaseName: '1'
     Owner: 12665
-    EntitlementSelection: '0'
-    Entitlement: 14154
+    EntitlementSelection: '1'
+#    Entitlement: 14154
     EntitlementPreference: '1'
     OverrideScanSettings: '1'
     AssessmentTypeId: '274'
