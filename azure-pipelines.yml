@@ -9,14 +9,17 @@
 #   2. Ensure the target release already has a DAST scan configuration in FoD.
 #
 # Required pipeline variables (non-secret):
-#   - FOD_URL        : FoD API URL (e.g. https://api.ams.fortify.com)
-#   - FOD_RELEASE_ID : FoD release ID (numeric, e.g. 1775747)
+#   - FOD_URL : FoD API URL (e.g. https://api.ams.fortify.com)
 
 parameters:
   - name: fcliVersion
     displayName: 'FCLI version to install'
     type: string
     default: '3.16.0'   # Change to any tag from https://github.com/fortify/fcli/releases
+  - name: releaseId
+    displayName: 'FoD Release ID (numeric)'
+    type: string
+    default: ''
 
 trigger:
   - none   # Run manually or adjust to your branch strategy
@@ -27,7 +30,7 @@ pool:
 variables:
   FCLI_VERSION: ${{ parameters.fcliVersion }}
   FOD_URL: 'https://api.ams.fortify.com'
-  FOD_RELEASE_ID: ''   # Set to your FoD release ID (e.g. 1775747)
+  FOD_RELEASE_ID: ${{ parameters.releaseId }}
 
 stages:
   - stage: FoDDASTScan
