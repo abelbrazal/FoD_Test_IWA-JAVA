@@ -9,15 +9,14 @@
 #   2. Ensure the target release already has a DAST scan configuration in FoD.
 #
 # Required pipeline variables (non-secret):
-#   - FOD_URL          : FoD API URL (e.g. https://api.ams.fortify.com)
-#   - FOD_APP_NAME     : FoD application name
-#   - FOD_RELEASE_NAME : FoD release name
+#   - FOD_URL        : FoD API URL (e.g. https://api.ams.fortify.com)
+#   - FOD_RELEASE_ID : FoD release ID (numeric, e.g. 1775747)
 
 parameters:
   - name: fcliVersion
     displayName: 'FCLI version to install'
     type: string
-    default: '3.20.0'   # Change to any tag from https://github.com/fortify/fcli/releases
+    default: '2.6.0'   # Change to any tag from https://github.com/fortify/fcli/releases
 
 trigger:
   - none   # Run manually or adjust to your branch strategy
@@ -28,8 +27,7 @@ pool:
 variables:
   FCLI_VERSION: ${{ parameters.fcliVersion }}
   FOD_URL: 'https://api.ams.fortify.com'
-  FOD_APP_NAME: 'MyApplication'
-  FOD_RELEASE_NAME: '$(Build.SourceBranchName)'   # Override if your release name differs
+  FOD_RELEASE_ID: ''   # Set to your FoD release ID (e.g. 1775747)
 
 stages:
   - stage: FoDDASTScan
@@ -90,6 +88,11 @@ stages:
                   --url           "$(FOD_URL)" `
                   --client-id     $env:FOD_CLIENT_ID `
                   --client-secret $env:FOD_CLIENT_SECRET
+
+                if ($LASTEXITCODE -ne 0) {
+                  Write-Error "FoD login failed (fcli exit code $LASTEXITCODE). Check FOD_CLIENT_ID, FOD_CLIENT_SECRET, and FOD_URL."
+                  exit $LASTEXITCODE
+                }
                 Write-Host "FoD login successful."
 
           # ------------------------------------------------------------------
@@ -103,8 +106,14 @@ stages:
               targetType: inline
               script: |
                 fcli fod dast-scan start `
-                  --release "$(FOD_APP_NAME):$(FOD_RELEASE_NAME)" `
+                  --release $(FOD_RELEASE_ID) `
                   --wait
+
+                if ($LASTEXITCODE -ne 0) {
+                  Write-Error "DAST scan failed or was not started (fcli exit code $LASTEXITCODE)."
+                  exit $LASTEXITCODE
+                }
+                Write-Host "DAST scan completed successfully."
               # failOnStderr defaults to false so FCLI informational output
               # does not incorrectly fail the step.
               failOnStderr: false
@@ -121,7 +130,7 @@ stages:
                 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 
                 fcli fod dast-scan list `
-                  --release "$(FOD_APP_NAME):$(FOD_RELEASE_NAME)" `
+                  --release $(FOD_RELEASE_ID) `
                   --output json `
                   | Out-File -FilePath "$outDir\dast-scan-summary.json" -Encoding utf8
 
