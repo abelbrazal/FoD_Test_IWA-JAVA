@@ -140,7 +140,7 @@ stages:
               targetType: inline
               script: |
                 fcli fod dast-scan start `
-                  "--release=1775747" `
+                  "--release=$(FOD_RELEASE_ID)" `
                   "--wait-interval=30"
 
                 if ($LASTEXITCODE -ne 0) {
@@ -152,44 +152,44 @@ stages:
               # does not incorrectly fail the step.
               failOnStderr: false
 
-          # ------------------------------------------------------------------
-          # Step 5 – Export scan summary (optional – writes JSON to artifacts)
-          # ------------------------------------------------------------------
-          - task: PowerShell@2
-            displayName: 'FoD – Export scan summary'
-            inputs:
-              targetType: inline
-              script: |
-                $outDir = "$(Build.ArtifactStagingDirectory)\fod-dast"
-                New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+          # # ------------------------------------------------------------------
+          # # Step 5 – Export scan summary (optional – writes JSON to artifacts)
+          # # ------------------------------------------------------------------
+          # - task: PowerShell@2
+          #   displayName: 'FoD – Export scan summary'
+          #   inputs:
+          #     targetType: inline
+          #     script: |
+          #       $outDir = "$(Build.ArtifactStagingDirectory)\fod-dast"
+          #       New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 
-                fcli fod dast-scan list `
-                  --release $(FOD_RELEASE_ID) `
-                  --output json `
-                  | Out-File -FilePath "$outDir\dast-scan-summary.json" -Encoding utf8
+          #       fcli fod dast-scan list `
+          #         --release $(FOD_RELEASE_ID) `
+          #         --output json `
+          #         | Out-File -FilePath "$outDir\dast-scan-summary.json" -Encoding utf8
 
-                Write-Host "Scan summary saved to $outDir\dast-scan-summary.json"
-            continueOnError: true   # Don't block the pipeline if export fails
+          #       Write-Host "Scan summary saved to $outDir\dast-scan-summary.json"
+          #   continueOnError: true   # Don't block the pipeline if export fails
 
-          # ------------------------------------------------------------------
-          # Step 6 – Log out of FoD (always runs, even if earlier steps fail)
-          # ------------------------------------------------------------------
-          - task: PowerShell@2
-            displayName: 'FoD – Logout'
-            condition: always()
-            inputs:
-              targetType: inline
-              script: |
-                fcli fod session logout
-                Write-Host "FoD logout successful."
+          # # ------------------------------------------------------------------
+          # # Step 6 – Log out of FoD (always runs, even if earlier steps fail)
+          # # ------------------------------------------------------------------
+          # - task: PowerShell@2
+          #   displayName: 'FoD – Logout'
+          #   condition: always()
+          #   inputs:
+          #     targetType: inline
+          #     script: |
+          #       fcli fod session logout
+          #       Write-Host "FoD logout successful."
 
-          # ------------------------------------------------------------------
-          # Step 7 – Publish DAST scan summary as pipeline artifact
-          # ------------------------------------------------------------------
-          - task: PublishBuildArtifacts@1
-            displayName: 'Publish FoD DAST scan artifacts'
-            condition: always()
-            inputs:
-              PathtoPublish: '$(Build.ArtifactStagingDirectory)\fod-dast'
-              ArtifactName:  'fod-dast-results'
-              publishLocation: Container
+          # # ------------------------------------------------------------------
+          # # Step 7 – Publish DAST scan summary as pipeline artifact
+          # # ------------------------------------------------------------------
+          # - task: PublishBuildArtifacts@1
+          #   displayName: 'Publish FoD DAST scan artifacts'
+          #   condition: always()
+          #   inputs:
+          #     PathtoPublish: '$(Build.ArtifactStagingDirectory)\fod-dast'
+          #     ArtifactName:  'fod-dast-results'
+          #     publishLocation: Container
