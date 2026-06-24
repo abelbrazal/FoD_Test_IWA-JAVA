@@ -16,7 +16,7 @@ parameters:
   - name: fcliVersion
     displayName: 'FCLI version to install'
     type: string
-    default: '2.9.1'   # Change to any tag from https://github.com/fortify/fcli/releases
+    default: '3.16.0'   # Change to any tag from https://github.com/fortify/fcli/releases
 
 trigger:
   - none   # Run manually or adjust to your branch strategy
