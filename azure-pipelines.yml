@@ -1,19 +1,143 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# FoD DAST Scan Pipeline using FCLI
+# Prerequisites:
+#   1. Create the following pipeline secret variables in ADO:
+#      - FOD_API_KEY_ID     : FoD API key ID
+#      - FOD_API_KEY_SECRET : FoD API key secret
+#   2. Ensure the target release already has a DAST scan configuration in FoD.
+#
+# Required pipeline variables (non-secret):
+#   - FOD_URL          : FoD portal URL (e.g. https://ams.fortify.com)
+#   - FOD_APP_NAME     : FoD application name
+#   - FOD_RELEASE_NAME : FoD release name
 
 trigger:
-- main
+  - none   # Run manually or adjust to your branch strategy
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: windows-latest
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+variables:
+  FCLI_VERSION: '2.6.0'    # Pin to a known stable version; update as needed
+  FOD_URL: 'https://ams.fortify.com'
+  FOD_APP_NAME: 'MyApplication'
+  FOD_RELEASE_NAME: '$(Build.SourceBranchName)'   # Override if your release name differs
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+stages:
+  - stage: FoDDASTScan
+    displayName: 'FoD DAST Scan'
+    jobs:
+      - job: RunDASTScan
+        displayName: 'Run FoD DAST Scan via FCLI'
+        timeoutInMinutes: 480  # DAST scans can be long-running; adjust as needed
+        steps:
+
+          # ------------------------------------------------------------------
+          # Step 1 – Install FCLI
+          # ------------------------------------------------------------------
+          - task: PowerShell@2
+            displayName: 'Install FCLI'
+            inputs:
+              targetType: inline
+              script: |
+                $version    = "$(FCLI_VERSION)"
+                $downloadUrl = "https://github.com/fortify/fcli/releases/download/v${version}/fcli-windows.zip"
+                $zipPath     = "$(Agent.TempDirectory)\fcli.zip"
+                $installDir  = "$(Agent.ToolsDirectory)\fcli"
+
+                Write-Host "Downloading FCLI v$version from $downloadUrl"
+                Invoke-WebRequest -Uri $downloadUrl -OutFile $zipPath -UseBasicParsing
+
+                Write-Host "Extracting FCLI to $installDir"
+                Expand-Archive -Path $zipPath -DestinationPath $installDir -Force
+
+                # Prepend the install directory to PATH for all subsequent steps
+                Write-Host "##vso[task.prependpath]$installDir"
+                Write-Host "FCLI installed successfully."
+
+          # ------------------------------------------------------------------
+          # Step 2 – Verify FCLI version
+          # ------------------------------------------------------------------
+          - task: PowerShell@2
+            displayName: 'Verify FCLI installation'
+            inputs:
+              targetType: inline
+              script: fcli --version
+
+          # ------------------------------------------------------------------
+          # Step 3 – Log in to FoD
+          # The API key is passed as KEY_ID:KEY_SECRET via a secret variable.
+          # Mark FOD_API_KEY_ID and FOD_API_KEY_SECRET as secret in ADO
+          # (Pipeline > Variables > padlock icon).
+          # ------------------------------------------------------------------
+          - task: PowerShell@2
+            displayName: 'FoD – Login'
+            env:
+              FOD_API_KEY_ID:     $(FOD_API_KEY_ID)
+              FOD_API_KEY_SECRET: $(FOD_API_KEY_SECRET)
+            inputs:
+              targetType: inline
+              script: |
+                $apiKey = "$env:FOD_API_KEY_ID`:$env:FOD_API_KEY_SECRET"
+                fcli fod session login `
+                  --url     "$(FOD_URL)" `
+                  --api-key $apiKey
+                Write-Host "FoD login successful."
+
+          # ------------------------------------------------------------------
+          # Step 4 – Start the DAST scan and wait for completion
+          # The release must already have a DAST scan configuration in FoD.
+          # Remove '--wait' if you prefer a fire-and-forget trigger.
+          # ------------------------------------------------------------------
+          - task: PowerShell@2
+            displayName: 'FoD – Start & wait for DAST scan'
+            inputs:
+              targetType: inline
+              script: |
+                fcli fod dast-scan start `
+                  --release "$(FOD_APP_NAME):$(FOD_RELEASE_NAME)" `
+                  --wait
+              # failOnStderr defaults to false so FCLI informational output
+              # does not incorrectly fail the step.
+              failOnStderr: false
+
+          # ------------------------------------------------------------------
+          # Step 5 – Export scan summary (optional – writes JSON to artifacts)
+          # ------------------------------------------------------------------
+          - task: PowerShell@2
+            displayName: 'FoD – Export scan summary'
+            inputs:
+              targetType: inline
+              script: |
+                $outDir = "$(Build.ArtifactStagingDirectory)\fod-dast"
+                New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+
+                fcli fod dast-scan list `
+                  --release "$(FOD_APP_NAME):$(FOD_RELEASE_NAME)" `
+                  --output json `
+                  | Out-File -FilePath "$outDir\dast-scan-summary.json" -Encoding utf8
+
+                Write-Host "Scan summary saved to $outDir\dast-scan-summary.json"
+            continueOnError: true   # Don't block the pipeline if export fails
+
+          # ------------------------------------------------------------------
+          # Step 6 – Log out of FoD (always runs, even if earlier steps fail)
+          # ------------------------------------------------------------------
+          - task: PowerShell@2
+            displayName: 'FoD – Logout'
+            condition: always()
+            inputs:
+              targetType: inline
+              script: |
+                fcli fod session logout
+                Write-Host "FoD logout successful."
+
+          # ------------------------------------------------------------------
+          # Step 7 – Publish DAST scan summary as pipeline artifact
+          # ------------------------------------------------------------------
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish FoD DAST scan artifacts'
+            condition: always()
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)\fod-dast'
+              ArtifactName:  'fod-dast-results'
+              publishLocation: Container
