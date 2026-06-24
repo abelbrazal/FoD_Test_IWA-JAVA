@@ -1,14 +1,23 @@
 # FoD DAST Scan Pipeline using FCLI
+# FCLI_VERSION is prompted at queue time. Accept the default or type any
+# release tag from https://github.com/fortify/fcli/releases
+#
 # Prerequisites:
 #   1. Create the following pipeline secret variables in ADO:
-#      - FOD_API_KEY_ID     : FoD API key ID
-#      - FOD_API_KEY_SECRET : FoD API key secret
+#      - FOD_CLIENT_ID     : FoD OAuth client ID
+#      - FOD_CLIENT_SECRET : FoD OAuth client secret
 #   2. Ensure the target release already has a DAST scan configuration in FoD.
 #
 # Required pipeline variables (non-secret):
-#   - FOD_URL          : FoD portal URL (e.g. https://ams.fortify.com)
+#   - FOD_URL          : FoD API URL (e.g. https://api.ams.fortify.com)
 #   - FOD_APP_NAME     : FoD application name
 #   - FOD_RELEASE_NAME : FoD release name
+
+parameters:
+  - name: fcliVersion
+    displayName: 'FCLI version to install'
+    type: string
+    default: '2.9.1'   # Change to any tag from https://github.com/fortify/fcli/releases
 
 trigger:
   - none   # Run manually or adjust to your branch strategy
@@ -17,8 +26,8 @@ pool:
   vmImage: windows-latest
 
 variables:
-  FCLI_VERSION: '2.6.0'    # Pin to a known stable version; update as needed
-  FOD_URL: 'https://ams.fortify.com'
+  FCLI_VERSION: ${{ parameters.fcliVersion }}
+  FOD_URL: 'https://api.ams.fortify.com'
   FOD_APP_NAME: 'MyApplication'
   FOD_RELEASE_NAME: '$(Build.SourceBranchName)'   # Override if your release name differs
 
@@ -65,22 +74,22 @@ stages:
 
           # ------------------------------------------------------------------
           # Step 3 – Log in to FoD
-          # The API key is passed as KEY_ID:KEY_SECRET via a secret variable.
-          # Mark FOD_API_KEY_ID and FOD_API_KEY_SECRET as secret in ADO
+          # Uses OAuth client credentials. Mark FOD_CLIENT_ID and
+          # FOD_CLIENT_SECRET as secret in ADO
           # (Pipeline > Variables > padlock icon).
           # ------------------------------------------------------------------
           - task: PowerShell@2
             displayName: 'FoD – Login'
             env:
-              FOD_API_KEY_ID:     $(FOD_API_KEY_ID)
-              FOD_API_KEY_SECRET: $(FOD_API_KEY_SECRET)
+              FOD_CLIENT_ID:     $(FOD_CLIENT_ID)
+              FOD_CLIENT_SECRET: $(FOD_CLIENT_SECRET)
             inputs:
               targetType: inline
               script: |
-                $apiKey = "$env:FOD_API_KEY_ID`:$env:FOD_API_KEY_SECRET"
                 fcli fod session login `
-                  --url     "$(FOD_URL)" `
-                  --api-key $apiKey
+                  --url           "$(FOD_URL)" `
+                  --client-id     $env:FOD_CLIENT_ID `
+                  --client-secret $env:FOD_CLIENT_SECRET
                 Write-Host "FoD login successful."
 
           # ------------------------------------------------------------------
