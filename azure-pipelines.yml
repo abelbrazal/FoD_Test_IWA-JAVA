@@ -141,7 +141,7 @@ stages:
               script: |
                 fcli fod dast-scan start `
                   --release=$(FOD_RELEASE_ID) `
-                  --wait
+                  #--wait
 
                 if ($LASTEXITCODE -ne 0) {
                   Write-Error "DAST scan failed or was not started (fcli exit code $LASTEXITCODE)."
