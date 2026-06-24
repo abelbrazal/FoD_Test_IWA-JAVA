@@ -16,7 +16,7 @@ parameters:
   - name: fcliVersion
     displayName: 'FCLI version to install'
     type: string
-    default: '2.6.0'   # Change to any tag from https://github.com/fortify/fcli/releases
+    default: '2.9.1'   # Change to any tag from https://github.com/fortify/fcli/releases
 
 trigger:
   - none   # Run manually or adjust to your branch strategy
@@ -85,9 +85,9 @@ stages:
               targetType: inline
               script: |
                 fcli fod session login `
-                  --url           "$(FOD_URL)" `
-                  --client-id     $env:FOD_CLIENT_ID `
-                  --client-secret $env:FOD_CLIENT_SECRET
+                  --url="$(FOD_URL)" `
+                  --client-id=$env:FOD_CLIENT_ID `
+                  --client-secret=$env:FOD_CLIENT_SECRET
 
                 if ($LASTEXITCODE -ne 0) {
                   Write-Error "FoD login failed (fcli exit code $LASTEXITCODE). Check FOD_CLIENT_ID, FOD_CLIENT_SECRET, and FOD_URL."
