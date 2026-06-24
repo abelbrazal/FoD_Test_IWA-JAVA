@@ -18,11 +18,11 @@ steps:
     echo See https://aka.ms/yaml
   displayName: 'Run a multi-line script'
 
-- task: JavaToolInstaller@0
-  inputs:
-    versionSpec: '17'
-    jdkArchitectureOption: 'x64'
-    jdkSourceOption: 'PreInstalled'
+#- task: JavaToolInstaller@0
+#  inputs:
+#    versionSpec: '17'
+#    jdkArchitectureOption: 'x64'
+#    jdkSourceOption: 'PreInstalled'
 
 #- task: FortifyOnDemandStatic@9
 #  inputs:
@@ -57,21 +57,21 @@ steps:
 #    BuildType: 'none'
 #    PolicyFailAction: '0'
 
-- task: FortifyOnDemandStatic@9
-  inputs:
-    FortifyProjects: '$(Pipeline.Workspace)/s'
-    FodConnection: 'FoD_AMS_API'
-    ReleaseOptions: '2'
-    ApplicationName: 'QS 1902008 - Take 5'
-    BusinessCriticality: '1'
-    ReleaseName: '1'
-    Owner: 12665
-    EntitlementSelection: '0'
-    Entitlement: 14154
-    EntitlementPreference: '1'
-    OverrideScanSettings: '1'
-    AssessmentTypeId: '274'
-    InProgressScanActionType: '2'
-    RemediationScanPreference: '2'
-    BuildType: 'none'
-    PolicyFailAction: '0'
+#- task: FortifyOnDemandStatic@9
+#  inputs:
+#    FortifyProjects: '$(Pipeline.Workspace)/s'
+#    FodConnection: 'FoD_AMS_API'
+#    ReleaseOptions: '2'
+#    ApplicationName: 'QS 1902008 - Take 5'
+#    BusinessCriticality: '1'
+#    ReleaseName: '1'
+#    Owner: 12665
+#    EntitlementSelection: '0'
+#    Entitlement: 14154
+#    EntitlementPreference: '1'
+#    OverrideScanSettings: '1'
+#    AssessmentTypeId: '274'
+#    InProgressScanActionType: '2'
+#    RemediationScanPreference: '2'
+#    BuildType: 'none'
+#    PolicyFailAction: '0'
