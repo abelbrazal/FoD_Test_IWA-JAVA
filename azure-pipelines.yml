@@ -8,8 +8,9 @@
 #      - FOD_CLIENT_SECRET : FoD OAuth client secret
 #   2. Ensure the target release already has a DAST scan configuration in FoD.
 #
-# Required pipeline variables (non-secret):
-#   - FOD_URL : FoD API URL (e.g. https://api.ams.fortify.com)
+# Required pipeline variables (non-secret, set in ADO Pipeline > Variables):
+#   - FOD_URL        : FoD API URL (e.g. https://api.ams.fortify.com)
+#   - FOD_RELEASE_ID : FoD release ID (numeric, e.g. 1775747) — mark as settable at queue time
 
 parameters:
   - name: fcliVersion
