@@ -17,15 +17,3 @@ steps:
     echo Add other tasks to build, test, and deploy your project.
     echo See https://aka.ms/yaml
   displayName: 'Run a multi-line script'
-
-- task: FortifyDASTAutomated@2
-  inputs:
-    FodConnection: 'FoD_AMS_API_abel_test'
-    ReleaseOptions: '0'
-    ReleaseId: 1775747
-    AssessmentTypeId: 314
-    EntitlementId: 14497
-    EntitlementFrequencyType: 'Subscription'
-    OverrideScanSettings: '2'
-    PollingInterval: 0
-    PolicyFailAction: '0'
