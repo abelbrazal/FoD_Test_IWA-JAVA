@@ -16,7 +16,7 @@ parameters:
   - name: fcliVersion
     displayName: 'FCLI version to install'
     type: string
-    default: '2.9.1'   # Change to any tag from https://github.com/fortify/fcli/releases
+    default: '2.6.0'   # Change to any tag from https://github.com/fortify/fcli/releases
 
 trigger:
   - none   # Run manually or adjust to your branch strategy
@@ -71,7 +71,41 @@ stages:
               script: fcli --version
 
           # ------------------------------------------------------------------
-          # Step 3 – Log in to FoD
+          # Step 3a – Verify credentials variables are populated
+          # Prints the length of each secret so you can confirm they are set
+          # without exposing the values in the log.
+          # ------------------------------------------------------------------
+          - task: PowerShell@2
+            displayName: 'FoD – Verify credential variables'
+            env:
+              FOD_CLIENT_ID:     $(FOD_CLIENT_ID)
+              FOD_CLIENT_SECRET: $(FOD_CLIENT_SECRET)
+            inputs:
+              targetType: inline
+              script: |
+                $idLen     = $env:FOD_CLIENT_ID.Length
+                $secretLen = $env:FOD_CLIENT_SECRET.Length
+
+                Write-Host "FOD_CLIENT_ID length     : $idLen"
+                Write-Host "FOD_CLIENT_SECRET length : $secretLen"
+
+                if ($idLen -eq 0 -or $secretLen -eq 0) {
+                  Write-Error "One or more credential variables are empty. Ensure FOD_CLIENT_ID and FOD_CLIENT_SECRET are defined as secret pipeline variables (Pipeline > Variables > padlock icon) and are not inside a variable group that is unlinked."
+                  exit 1
+                }
+
+                # Warn if values look like they were stored with surrounding quotes
+                if ($env:FOD_CLIENT_ID.StartsWith('"') -or $env:FOD_CLIENT_ID.StartsWith("'")) {
+                  Write-Warning "FOD_CLIENT_ID appears to start with a quote character - remove surrounding quotes from the variable value."
+                }
+                if ($env:FOD_CLIENT_SECRET.StartsWith('"') -or $env:FOD_CLIENT_SECRET.StartsWith("'")) {
+                  Write-Warning "FOD_CLIENT_SECRET appears to start with a quote character - remove surrounding quotes from the variable value."
+                }
+
+                Write-Host "Credential variables are populated."
+
+          # ------------------------------------------------------------------
+          # Step 3b – Log in to FoD
           # Uses OAuth client credentials. Mark FOD_CLIENT_ID and
           # FOD_CLIENT_SECRET as secret in ADO
           # (Pipeline > Variables > padlock icon).
@@ -85,9 +119,9 @@ stages:
               targetType: inline
               script: |
                 fcli fod session login `
-                  --url="$(FOD_URL)" `
-                  --client-id=$env:FOD_CLIENT_ID `
-                  --client-secret=$env:FOD_CLIENT_SECRET
+                  "--url=$(FOD_URL)" `
+                  "--client-id=$env:FOD_CLIENT_ID" `
+                  "--client-secret=$env:FOD_CLIENT_SECRET"
 
                 if ($LASTEXITCODE -ne 0) {
                   Write-Error "FoD login failed (fcli exit code $LASTEXITCODE). Check FOD_CLIENT_ID, FOD_CLIENT_SECRET, and FOD_URL."
